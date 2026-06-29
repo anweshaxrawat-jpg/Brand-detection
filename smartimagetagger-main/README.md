@@ -1,136 +1,243 @@
-# Smart Image Tagger
+# AI Brand Detection & Image Analysis
 
-A small web app that sends an image (upload or URL) to **Azure AI Vision** and
-displays the caption, tags, confidence scores, and OCR text it returns.
+A web application that analyzes images using **Azure AI Vision** and performs **brand detection** based on OCR text and semantic tags. Users can upload an image or provide an image URL, and the application extracts intelligent insights including detected brands, image tags, confidence scores, and text recognition.
 
-The frontend never talks to Azure directly — it calls a small Flask backend,
-which holds the Azure Vision key as a server-side environment variable. This
-is the piece that was missing in the original single-file HTML demo (it asked
-you to paste the key into the page, which would have exposed it to anyone
-opening dev tools).
+The frontend communicates only with a secure **Flask backend**, which stores the Azure AI Vision credentials as environment variables. This ensures that API keys are never exposed in the browser.
 
-## Repo structure
+---
 
-```
-smart-image-tagger/
-├── app.py                # Flask backend — proxies requests to Azure AI Vision
-├── requirements.txt       # Python dependencies
+## Features
+
+* 🖼️ Upload an image from your device
+* 🌐 Analyze images using a direct image URL
+* 🏷️ Brand Detection (using OCR text and semantic tags)
+* 🔍 Semantic Tag Detection
+* 📝 Optical Character Recognition (OCR)
+* 📊 Confidence Scores for detected tags
+* 🔒 Secure server-side Azure API integration
+* 💻 Modern Microsoft-inspired responsive user interface
+
+---
+
+## Project Structure
+
+```text
+Brand-detection/
+├── app.py                  # Flask backend
+├── requirements.txt         # Python dependencies
 ├── .gitignore
 ├── README.md
 └── static/
-    └── index.html         # Frontend UI (served by Flask at "/")
+    └── index.html           # Frontend UI
 ```
 
-Everything Azure App Service needs is at the repo root: `app.py` and
-`requirements.txt`. Keep it this flat — Azure's Linux Python build (Oryx)
-looks for `requirements.txt` in the root and runs `pip install` automatically.
+---
 
-## How it works
+## Technology Stack
+
+* Python
+* Flask
+* Azure AI Vision Image Analysis API
+* HTML5
+* CSS3
+* JavaScript
+* REST API
+* Git & GitHub
+
+---
+
+## How It Works
+
+```text
+Browser
+    │
+    ▼
+Upload Image / Image URL
+    │
+    ▼
+POST /analyze
+    │
+    ▼
+Flask Backend
+    │
+    ▼
+Azure AI Vision API
+    │
+    ▼
+Brand Detection Logic
+(OCR + Semantic Tags)
+    │
+    ▼
+Results Returned to Browser
+```
+
+The backend securely stores the Azure credentials using environment variables (`VISION_KEY` and `VISION_ENDPOINT`) and performs all communication with Azure AI Vision. The frontend never has direct access to the API keys.
+
+---
+
+## Brand Detection
+
+Unlike Azure AI Vision, which primarily provides image understanding, this project adds a custom brand detection layer.
+
+The application:
+
+1. Sends the image to Azure AI Vision.
+2. Extracts semantic tags and OCR text.
+3. Searches for known brand keywords.
+4. Displays the detected brand if a match is found.
+
+Currently supported brands include:
+
+* Nike
+* Adidas
+* Puma
+* Apple
+* Samsung
+* HP
+* Lenovo
+* Dell
+* Sony
+* Canon
+* LG
+* Bosch
+* Tesla
+* Honda
+* Toyota
+
+If no matching brand is found, the application displays:
 
 ```
-Browser  →  POST /analyze  →  Flask (app.py)  →  Azure AI Vision  →  JSON back to browser
+No known brand detected
 ```
 
-`VISION_KEY` and `VISION_ENDPOINT` live only in App Service's environment —
-they're read with `os.environ.get(...)` in `app.py` and never appear in any
-file you commit or any response sent to the browser.
+---
 
-## 1. Local development
+## Local Installation
+
+Clone the repository:
 
 ```bash
-git clone https://github.com/<your-username>/smart-image-tagger.git
-cd smart-image-tagger
+git clone https://github.com/<your-username>/Brand-detection.git
+cd Brand-detection
+```
+
+Create a virtual environment:
+
+```bash
 python -m venv venv
-source venv/bin/activate        # venv\Scripts\activate on Windows
+```
+
+Activate it:
+
+**Windows**
+
+```bash
+venv\Scripts\activate
+```
+
+**Linux / macOS**
+
+```bash
+source venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
 pip install -r requirements.txt
+```
 
-export VISION_KEY="your-azure-vision-key"
-export VISION_ENDPOINT="https://your-resource.cognitiveservices.azure.com"
+Configure environment variables:
 
+```text
+VISION_KEY=your_azure_key
+VISION_ENDPOINT=https://your-resource.cognitiveservices.azure.com
+```
+
+Run the application:
+
+```bash
 python app.py
 ```
 
-Visit `http://localhost:5000`.
-
-## 2. Create the Azure resources
-
-1. In the [Azure Portal](https://portal.azure.com), create a **Computer
-   Vision** (Azure AI Vision) resource. Copy **Key 1** and the **Endpoint**
-   from its "Keys and Endpoint" page.
-2. Create an **App Service** (Linux, Python 3.11+ runtime, F1 free tier is
-   fine to start).
-
-## 3. Configure App Settings (this replaces the old config UI)
-
-In the App Service resource → **Settings → Environment variables** (or
-**Configuration → Application settings** on older portal UI), add:
-
-| Name              | Value                                                      |
-|-------------------|-------------------------------------------------------------|
-| `VISION_KEY`      | your Computer Vision key                                    |
-| `VISION_ENDPOINT` | `https://your-resource.cognitiveservices.azure.com`          |
-
-Save, then restart the app. This is the step you mentioned — the endpoint and
-key go here, not in the HTML/JS.
-
-## 4. Set the startup command
-
-App Service → **Settings → Configuration → General settings → Startup
-Command**:
+Open:
 
 ```
-gunicorn --bind=0.0.0.0 --timeout 600 app:app
+http://localhost:5000
 ```
 
-(`gunicorn` is already in `requirements.txt`.)
+---
 
-## 5. Deploy
+## API Endpoints
 
-### Option A — GitHub Actions via Deployment Center (recommended)
+### GET /
 
-1. Push this repo to GitHub.
-2. In App Service → **Deployment → Deployment Center**, choose **GitHub** as
-   the source, authorize, and pick your repo/branch.
-3. Azure generates a GitHub Actions workflow (`.github/workflows/*.yml`) and
-   commits it to your repo automatically. Every push to the branch
-   redeploys.
+Loads the web application.
 
-### Option B — Azure CLI
+---
 
-```bash
-az login
-az webapp up \
-  --name <your-app-name> \
-  --resource-group <your-resource-group> \
-  --runtime "PYTHON:3.11" \
-  --sku F1
+### POST /analyze
+
+Accepts either:
+
+```json
+{
+    "url": "https://example.com/image.jpg"
+}
 ```
 
-Run this from inside the repo folder. For subsequent deploys:
+or
 
-```bash
-az webapp deploy --resource-group <your-resource-group> --name <your-app-name> --src-path .
+```json
+{
+    "image_base64": "..."
+}
 ```
 
-### Option C — VS Code Azure App Service extension
+Returns:
 
-Right-click the folder → **Deploy to Web App**, pick your subscription and
-App Service.
+* Detected Brand
+* Image Tags
+* Confidence Scores
+* OCR Text
+* Azure AI Vision Response
 
-## 6. Verify
+---
 
-- `https://<your-app-name>.azurewebsites.net/` → should load the UI.
-- `https://<your-app-name>.azurewebsites.net/health` → should return
-  `{"status": "ok", "configured": true}`. If `configured` is `false`, the App
-  Settings weren't saved/restarted correctly.
+### GET /health
 
-## Notes
+Returns:
 
-- `/analyze` accepts either `{"url": "..."}` or `{"image_base64": "..."}` —
-  matches the two ways the frontend can supply an image (URL field or
-  drag-and-drop/file upload).
-- Because the frontend and backend are served from the same origin, there's
-  no CORS configuration to worry about.
-- If you later split the frontend onto a separate static host (e.g. Azure
-  Static Web Apps), you'll need to add CORS headers in `app.py` and update
-  the `fetch('/analyze')` call to a full URL.
+```json
+{
+    "status": "ok",
+    "configured": true
+}
+```
+
+---
+
+## Security
+
+* Azure API keys are stored as environment variables.
+* The frontend never communicates directly with Azure.
+* Sensitive credentials are excluded from Git using `.gitignore`.
+
+---
+
+## Future Improvements
+
+* AI logo detection using YOLO
+* Azure Custom Vision integration
+* Support for additional brands
+* Object detection
+* Better logo recognition without OCR
+* Deployment using Docker and Azure App Service
+
+---
+
+## Author
+
+**Anwesha Rawat**
+
+This project was developed as a learning project to explore Azure AI Vision, Flask backend development, image analysis, OCR, and custom brand detection.
