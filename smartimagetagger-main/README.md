@@ -8,14 +8,14 @@ The frontend communicates only with a secure **Flask backend**, which stores the
 
 ## Features
 
-* 🖼️ Upload an image from your device
-* 🌐 Analyze images using a direct image URL
-* 🏷️ Brand Detection (using OCR text and semantic tags)
-* 🔍 Semantic Tag Detection
-* 📝 Optical Character Recognition (OCR)
-* 📊 Confidence Scores for detected tags
-* 🔒 Secure server-side Azure API integration
-* 💻 Modern Microsoft-inspired responsive user interface
+*  Upload an image from your device
+*  Analyze images using a direct image URL
+*  Brand Detection (using OCR text and semantic tags)
+*  Semantic Tag Detection
+*  Optical Character Recognition (OCR)
+*  Confidence Scores for detected tags
+*  Secure server-side Azure API integration
+*  Modern Microsoft-inspired responsive user interface
 
 ---
 
